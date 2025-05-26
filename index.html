@@ -123,25 +123,25 @@
         <form id="userForm">
             <div class="form-group">
                 <label for="name">Full Name</label>
-                <input type="text" id="name" name="name" placeholder="Enter your full name">
+                <input type="text" id="name" name="name" placeholder="Enter your full name" required>
             </div>
             
             <div class="form-group">
                 <label for="email">Email Address</label>
-                <input type="text" id="email" name="email" placeholder="Enter your email">
+                <input type="email" id="email" name="email" placeholder="Enter your email" required>
             </div>
             
             <div class="form-group">
                 <label for="phone">Phone Number</label>
                 <div class="phone-group">
-                    <input type="text" id="countryCode" name="countryCode" class="country-code" placeholder="+1">
-                    <input type="text" id="phoneNumber" name="phoneNumber" class="phone-number" placeholder="Phone number">
+                    <input type="text" id="countryCode" name="countryCode" class="country-code" placeholder="+1" required>
+                    <input type="tel" id="phoneNumber" name="phoneNumber" class="phone-number" placeholder="Phone number" required>
                 </div>
             </div>
             
             <div class="form-group">
                 <label for="password">Password</label>
-                <input type="password" id="password" name="password" placeholder="Enter your password">
+                <input type="password" id="password" name="password" placeholder="Enter your password" required>
             </div>
             
             <button type="submit">Submit</button>
@@ -156,57 +156,65 @@
         </div>
     </div>
 
-    <script>
-        document.getElementById('userForm').addEventListener('submit', function(e) {
-    e.preventDefault();
-    
-    // Show loading state (optional)
-    const submitBtn = e.target.querySelector('button[type="submit"]');
-    submitBtn.disabled = true;
-    submitBtn.textContent = 'Submitting...';
-    
-    // Get form values
-    const formData = {
-        name: document.getElementById('name').value.trim(),
-        email: document.getElementById('email').value.trim(),
-        phone: document.getElementById('countryCode').value.trim() + 
-               document.getElementById('phoneNumber').value.trim(),
-        password: document.getElementById('password').value,
-        timestamp: new Date().toISOString()
-    };
+    <!-- Add Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-database-compat.js"></script>
 
-    // Send data to Google Sheets
-    fetch('https://script.google.com/macros/s/AKfycbxY36Y6F1t7IywL6BgafBqrw5cSQmUqSNkygXRO4h0Dg1rx8Y-TRRJx8ROdDP9kBpM/exec', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(formData)
-    })
-    .then(response => {
-        if (!response.ok) throw new Error('Network response was not ok');
-        return response.json(); // Parse JSON response
-    })
-    .then(data => {
-        if (data.result !== 'success') throw new Error(data.message || 'Unknown error');
-        
-        // Success handling
-        document.getElementById('successMessage').style.display = 'block';
-        document.getElementById('errorMessage').style.display = 'none';
-        document.getElementById('userForm').reset();
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        document.getElementById('errorMessage').style.display = 'block';
-        document.getElementById('successMessage').style.display = 'none';
-        document.getElementById('errorMessage').textContent = 
-            'Error: ' + (error.message || 'Failed to submit form. Please try again.');
-    })
-    .finally(() => {
-        submitBtn.disabled = false;
-        submitBtn.textContent = 'Submit';
-    });
-});
+    <script>
+        // Your Firebase configuration (replace with your actual config)
+        const firebaseConfig = {
+             apiKey: "AIzaSyA8xA7kSYdPCDXnQbugTYLQmESjcMe0U2Q",
+             authDomain: "user-info-1fcb2.firebaseapp.com",
+             databaseURL: "https://user-info-1fcb2-default-rtdb.firebaseio.com",
+             projectId: "user-info-1fcb2",
+             storageBucket: "user-info-1fcb2.firebasestorage.app",
+             messagingSenderId: "988013594177",
+             appId: "1:988013594177:web:112fb5ff6171c4b97568c0",
+             measurementId: "G-KWRQ2L3XD7"
+        };
+
+        // Initialize Firebase
+        const app = firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+
+        document.getElementById('userForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Show loading state
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Submitting...';
+            
+            // Get form values
+            const formData = {
+                name: document.getElementById('name').value.trim(),
+                email: document.getElementById('email').value.trim(),
+                phone: document.getElementById('countryCode').value.trim() + 
+                       document.getElementById('phoneNumber').value.trim(),
+                password: document.getElementById('password').value,
+                timestamp: new Date().toISOString()
+            };
+
+            // Save to Firebase
+            database.ref('users/' + Date.now()).set(formData)
+                .then(() => {
+                    // Success handling
+                    document.getElementById('successMessage').style.display = 'block';
+                    document.getElementById('errorMessage').style.display = 'none';
+                    document.getElementById('userForm').reset();
+                })
+                .catch((error) => {
+                    console.error('Error:', error);
+                    document.getElementById('errorMessage').style.display = 'block';
+                    document.getElementById('successMessage').style.display = 'none';
+                    document.getElementById('errorMessage').textContent = 
+                        'Error: ' + (error.message || 'Failed to submit form. Please try again.');
+                })
+                .finally(() => {
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Submit';
+                });
+        });
     </script>
 </body>
 </html>
